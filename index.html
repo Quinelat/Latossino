@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Mialato Cassino 🎰</title>
+    <style>
+        :root { --gold: #f1c40f; --blue: #3498db; --red: #e74c3c; --dark: #0f172a; --card: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); color: white; text-align: center; margin: 0; padding-bottom: 50px; }
+        
+        .header { background: var(--card); padding: 15px; border-bottom: 2px solid var(--gold); font-size: 1.5rem; color: var(--gold); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-around; align-items: center; }
+
+        /* MENU PRINCIPAL */
+        .hero { padding: 40px 20px; }
+        .logo { font-size: 3.5rem; font-weight: 900; background: linear-gradient(to bottom, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .btn-game { background: var(--card); border: 2px solid #334155; color: white; padding: 20px; width: 280px; font-size: 1.2rem; border-radius: 15px; cursor: pointer; transition: 0.3s; margin: 10px; font-weight: bold; }
+        .btn-game:hover { border-color: var(--gold); transform: translateY(-3px); }
+
+        /* MODAIS */
+        .modal-card { background: var(--card); max-width: 600px; margin: 20px auto; padding: 25px; border-radius: 20px; border: 2px solid var(--gold); display: none; }
+        input, select { width: 95%; padding: 12px; margin: 8px 0; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+
+        /* CARREIRA */
+        .carreira-box { text-align: left; background: #0f172a; padding: 20px; border-radius: 10px; margin-top: 15px; border-left: 5px solid var(--gold); line-height: 1.6; }
+        .stat-line { display: flex; justify-content: space-between; border-bottom: 1px solid #1e293b; padding: 5px 0; }
+
+        /* ESTÁGIO DE JOGO (BOXE/CORRIDA) */
+        #stage { width: 95%; max-width: 750px; height: 320px; background: #020617; margin: 20px auto; position: relative; border-radius: 20px; border: 3px solid #1e293b; display: none; overflow: hidden; }
+        .lane { height: 50%; border-bottom: 2px dashed #334155; box-sizing: border-box; }
+        .finish { position: absolute; right: 30px; top: 0; bottom: 0; width: 20px; background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); }
+
+        /* BONEQUINHOS */
+        .sprite { position: absolute; width: 50px; height: 100px; bottom: 20px; }
+        .head { width: 25px; height: 25px; background: #ffdbac; border-radius: 50%; margin: 0 auto; border: 1px solid #000; }
+        .body { width: 8px; height: 40px; background: white; margin: 0 auto; position: relative; }
+        .arm { position: absolute; width: 20px; height: 6px; background: white; top: 10px; }
+        .p1 .body, .p1 .arm { background: var(--blue); }
+        .p2 .body, .p2 .arm { background: var(--red); }
+        
+        .hp-bar-outer { width: 60px; height: 6px; background: #333; position: absolute; top: -20px; left: -5px; }
+        .hp-bar-inner { height: 100%; background: #2ecc71; width: 100%; }
+
+        .btn-main { background: var(--gold); color: #000; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
+        .punch .arm { transform: scaleX(2.5); background: #fff !important; border: 1px solid var(--gold); }
+        .run-anim { animation: runShake 0.2s infinite; }
+        @keyframes runShake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>💰 $<span id="saldo">1000</span></div>
+        <button onclick="openModal('shop')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:bold;">🛒 CÓDIGOS</button>
+    </div>
+
+    <div id="menu" class="hero">
+        <div class="logo">MIALATO 🎰</div>
+        <button class="btn-game" onclick="openModal('setup-luta')">🥊 BOXE / CORRIDA</button>
+        <button class="btn-game" onclick="openModal('career')" style="background:#27ae60; color:white;">⚽ CARREIRA PRO</button>
+        <button class="btn-game" onclick="openModal('hitler')" style="background:#4b0082; color:white;">⚡ HITLER</button>
+    </div>
+
+    <div id="career" class="modal-card">
+        <h3>⚽ Agenciamento Profissional</h3>
+        <input type="text" id="cj-nome" placeholder="Nome do Jogador">
+        <input type="number" id="cj-num" placeholder="Número">
+        <select id="cj-pos">
+            <option>Centroavante</option><option>Ponta</option><option>Meia</option>
+            <option>Zagueiro</option><option>Lateral</option><option>Goleiro</option>
+        </select>
+        <input type="text" id="cj-selecao" placeholder="Seleção (Ex: Brasil, Portugal...)">
+        
+        <button class="btn-main" id="btn-contrato" onclick="gerarCarreira()">ASSINAR POR $500</button>
+        <div id="career-res" style="display:none; margin-top:15px;">
+            <div id="career-text" class="carreira-box"></div>
+            <div id="final-profit" style="font-size: 1.5rem; font-weight: bold; margin-top: 10px;"></div>
+        </div>
+        <button onclick="closeModals()" style="background:none; border:none; color:white; cursor:pointer; margin-top:10px">Voltar</button>
+    </div>
+
+    <div id="setup-luta" class="modal-card">
+        <h3>🥊 Configurar Duelo</h3>
+        <div style="display:flex; gap:10px">
+            <input type="text" id="n1" placeholder="Nome 1">
+            <input type="text" id="n2" placeholder="Nome 2">
+        </div>
+        <input type="number" id="p1" placeholder="Peso 1 (kg)">
+        <input type="number" id="p2" placeholder="Peso 2 (kg)">
+        <select id="mode"><option value="boxe">Boxe</option><option value="corrida">Corrida</option></select>
+        Apostar no: <select id="bOn" style="width:60px"><option value="1">1</option><option value="2">2</option></select>
+        $ <input type="number" id="bVal" value="100" style="width:80px">
+        <button class="btn-main" onclick="playGame()">APOSTAR E JOGAR</button>
+        <button onclick="closeModals()" style="background:none; border:none; color:white; cursor:pointer; margin-top:10px">Voltar</button>
+    </div>
+
+    <div id="hitler" class="modal-card">
+        <h3>⚡ Desafio Hitler</h3>
+        <input type="text" id="hIn" placeholder="NOME EM MAIÚSCULO">
+        <button class="btn-main" onclick="playHitler()">APOSTAR $100</button>
+        <button onclick="closeModals()" style="margin-top:10px; background:none; color:white; border:none; cursor:pointer;">Voltar</button>
+    </div>
+
+    <div id="shop" class="modal-card">
+        <h3>🔑 Códigos</h3>
+        <input type="text" id="cheat" placeholder="Código...">
+        <button class="btn-main" onclick="useCheat()">ATIVAR</button>
+        <button onclick="closeModals()" style="margin-top:10px; background:none; color:white; border:none; cursor:pointer;">Voltar</button>
+    </div>
+
+    <div id="stage">
+        <div id="track-bg" style="display:none; height:100%"><div class="lane"></div><div class="lane"></div><div class="finish"></div></div>
+        <div id="s1" class="sprite p1" style="left:50px"><div class="hp-bar-outer"><div id="h1" class="hp-bar-inner"></div></div><div class="head"></div><div class="body"><div class="arm" style="left:8px"></div></div><span id="nt1" style="font-size:10px; position:absolute; bottom:-20px; width:100px; left:-25px"></span></div>
+        <div id="s2" class="sprite p2" style="right:50px"><div class="hp-bar-outer"><div id="h2" class="hp-bar-inner"></div></div><div class="head"></div><div class="body"><div class="arm" style="right:8px"></div></div><span id="nt2" style="font-size:10px; position:absolute; bottom:-20px; width:100px; left:-25px"></span></div>
+    </div>
+
+    <h1 id="msg"></h1>
+    <button id="btn-next" onclick="location.reload()" style="display:none; padding:15px; background:var(--gold); border:none; cursor:pointer; border-radius:10px; font-weight:bold; margin: 0 auto;">VOLTAR 🏠</button>
+
+    <script>
+        let balance = 1000;
+
+        function openModal(id) { document.querySelectorAll('.modal-card').forEach(m => m.style.display='none'); document.getElementById('menu').style.display='none'; document.getElementById(id).style.display='block'; }
+        function closeModals() { document.querySelectorAll('.modal-card').forEach(m => m.style.display='none'); document.getElementById('menu').style.display='block'; }
+
+        function useCheat() {
+            let c = document.getElementById('cheat').value;
+            if(c === "QUINELATO") { balance = 9999999; alert("RICO!"); }
+            else if(c === "ROBINHO") { alert("RAPHA NAO VAI TER DICAS PRO BETINHA"); }
+            document.getElementById('saldo').innerText = balance;
+        }
+
+        function playHitler() {
+            if(balance < 100) return; balance -= 100;
+            const w = ["PELE", "ROBINHO", "NEYMAR", "STALIN", "KID BENGALA", "CAÇA RATO", "BOLSONARO", "VIRGENS", "TADALAFELAS", "CRIADOR DO GUARANI"];
+            if(w.includes(document.getElementById('hIn').value.toUpperCase())) { balance += 100000; alert("GANHOU!"); } else alert("PERDEU!");
+            document.getElementById('saldo').innerText = balance;
+        }
+
+        function gerarCarreira() {
+            const nome = document.getElementById('cj-nome').value.toUpperCase();
+            const selecao = document.getElementById('cj-selecao').value || "Brasil";
+            if(!nome || balance < 500) return alert("Preencha tudo!");
+            balance -= 500; document.getElementById('saldo').innerText = balance;
+            
+            const times = ["Real Madrid", "Santos", "Bayern", "Flamengo", "PSG", "Vasco", "Man. City"];
+            const titulosPool = ["Copa do Mundo", "Champions League", "Libertadores", "Bola de Ouro", "Copa do Brasil"];
+            
+            let g = Math.floor(Math.random()*600), a = Math.floor(Math.random()*300);
+            let t = titulosPool.filter(() => Math.random() > 0.6).join(", ") || "Nenhum";
+
+            document.getElementById('career-text').innerHTML = `
+                <div class="stat-line"><span><b>JOGADOR:</b></span> <span>${nome}</span></div>
+                <div class="stat-line"><span><b>SELEÇÃO:</b></span> <span>${selecao}</span></div>
+                <div class="stat-line"><span><b>BASE:</b></span> <span>${times[Math.floor(Math.random()*7)]}</span></div>
+                <div class="stat-line"><span><b>AUGE:</b></span> <span>${times[Math.floor(Math.random()*7)]}</span></div>
+                <div class="stat-line"><span><b>TÍTULOS:</b></span> <span>${t}</span></div>
+                <hr>
+                <b>GOLS: ${g} | ASSISTÊNCIAS: ${a}</b>
+            `;
+            
+            let lucro = g > 400 ? 2500 : (g > 150 ? 800 : 0);
+            balance += lucro;
+            document.getElementById('final-profit').innerText = lucro > 0 ? `LUCRO: +$${lucro}` : "PREJUÍZO: -$500";
+            document.getElementById('final-profit').style.color = lucro > 0 ? "#2ecc71" : "#e74c3c";
+            document.getElementById('career-res').style.display = 'block';
+            document.getElementById('saldo').innerText = balance;
+        }
+
+        function playGame() {
+            const v = parseFloat(document.getElementById('bVal').value);
+            if(v > balance) return; balance -= v; document.getElementById('saldo').innerText = balance;
+            const m = document.getElementById('mode').value;
+            document.getElementById('setup-luta').style.display = 'none';
+            document.getElementById('stage').style.display = 'block';
+            
+            let p1 = {hp:100, pos:50}, p2 = {hp:100, pos:50};
+            document.getElementById('nt1').innerText = document.getElementById('n1').value || "P1";
+            document.getElementById('nt2').innerText = document.getElementById('n2').value || "P2";
+
+            if(m === 'corrida') { 
+                document.getElementById('track-bg').style.display = 'block'; 
+                document.getElementById('s1').style.top = "50px"; document.getElementById('s2').style.top = "200px";
+                document.getElementById('s1').classList.add('run-anim'); document.getElementById('s2').classList.add('run-anim');
+                document.getElementById('s2').style.right = "auto"; document.getElementById('s2').style.left = "50px";
+            } else { document.getElementById('s2').style.right = "50px"; }
+
+            let loop = setInterval(() => {
+                if(m === 'boxe') {
+                    if(p1.pos < 300) { p1.pos += 10; document.getElementById('s1').style.left = p1.pos+"px"; }
+                    if(p2.pos < 300) { p2.pos += 10; document.getElementById('s2').style.right = p2.pos+"px"; }
+                    if(p1.pos >= 300) { p1.hp -= Math.random()*5; p2.hp -= Math.random()*5; document.getElementById('s1').classList.toggle('punch'); document.getElementById('s2').classList.toggle('punch'); }
+                } else {
+                    p1.pos += Math.random()*15; p2.pos += Math.random()*15;
+                    document.getElementById('s1').style.left = p1.pos+"px"; document.getElementById('s2').style.left = p2.pos+"px";
+                }
+                document.getElementById('h1').style.width = p1.hp+"%"; document.getElementById('h2').style.width = p2.hp+"%";
+
+                if(p1.hp<=0 || p2.hp<=0 || p1.pos >= 680 || p2.pos >= 680) {
+                    clearInterval(loop);
+                    let win = (p1.hp > 0 && p1.pos >= p2.pos) ? "1" : "2";
+                    document.getElementById('msg').innerText = "VENCEDOR: " + win;
+                    if(document.getElementById('bOn').value === win) { balance += v*2; alert("GANHOU!"); } else alert("PERDEU!");
+                    document.getElementById('saldo').innerText = balance;
+                    document.getElementById('btn-next').style.display = 'block';
+                }
+            }, 80);
+        }
+    </script>
+</body>
+</html>
